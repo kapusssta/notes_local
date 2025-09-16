@@ -1,5 +1,8 @@
 import tkinter as tk
+import json
+import os
 
+TASKS_FILE = "tasks.json"
 tasks = []
 
 root = tk.Tk()
@@ -8,6 +11,22 @@ root.attributes('-topmost', True)
 root.attributes('-alpha', 0.9)
 root.geometry("400x300")
 root.configure(bg='#2c2c2c')
+
+def save_tasks():
+    with open(TASKS_FILE, 'w', encoding="utf-8") as f:
+        json.dump(tasks, f, ensure_ascii=False, indent=2)
+
+def load_tasks():
+    global tasks
+    if os.path.exists(TASKS_FILE):
+        try:
+            with open(TASKS_FILE, "r", encoding="utf-8") as f:
+                tasks = json.load(f)
+        except Exception as e:
+            print(f"Ошибка загрузки задач: {e}")
+            tasks = []
+    else:
+        tasks = []
 
 def update_check_llist():
     for widget in check_list.winfo_children():
@@ -42,6 +61,7 @@ def update_check_llist():
         del_btn.pack(side=tk.RIGHT)
 
 
+
 def add_task():
     text = entry.get().strip()
     if text:
@@ -49,6 +69,7 @@ def add_task():
         print(f'Добавлена новая задача: {text}')
         entry.delete(0, tk.END)
         update_check_llist()
+        save_tasks()
     else:
         print("Введите задачу")
 
@@ -67,13 +88,17 @@ def do_move(event):
 def toggle_task(index, var):
     tasks[index]["completed"] = var.get()
     update_check_llist()
+    save_tasks()
 
 def delete_task(index):
     del tasks[index]
     update_check_llist()
-
+    save_tasks()
 check_list = tk.Frame(root, bg="#2c2c2c")
 check_list.place(x=10, y=80, width=380, height=200)
+
+load_tasks()
+update_check_llist()
 
 title_bar = tk.Label(
     root,
